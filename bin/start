@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Start the webapp-reviewer companion server
+set -euo pipefail
+
+PORT="${1:-10002}"
+PID_FILE="$HOME/.claude/webapp-reviewer.pid"
+SERVER="$(dirname "$0")/../assets/server.js"
+
+# Check if already running
+if [ -f "$PID_FILE" ]; then
+  PID=$(cat "$PID_FILE")
+  if kill -0 "$PID" 2>/dev/null; then
+    echo "Already running (PID $PID, port $PORT)"
+    exit 0
+  fi
+  rm -f "$PID_FILE"
+fi
+
+# Start server in background
+nohup node "$SERVER" --port "$PORT" > /dev/null 2>&1 &
+echo "Started webapp-reviewer server (PID $!, port $PORT)"
+echo "Reviews will be saved to ~/.claude/reviews/"

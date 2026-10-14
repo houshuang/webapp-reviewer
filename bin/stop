@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Stop the webapp-reviewer companion server
+set -euo pipefail
+
+PID_FILE="$HOME/.claude/webapp-reviewer.pid"
+
+if [ -f "$PID_FILE" ]; then
+  PID=$(cat "$PID_FILE")
+  if kill -0 "$PID" 2>/dev/null; then
+    kill "$PID"
+    echo "Stopped webapp-reviewer server (PID $PID)"
+  else
+    echo "Server not running (stale PID file)"
+  fi
+  rm -f "$PID_FILE"
+else
+  echo "No PID file found — server not running"
+fi
