@@ -1,0 +1,14 @@
+#!/usr/bin/env node
+// Rewrites review.md in a saved review folder from its timeline.json with the current
+// export code, keeping the old file as review.previous.md.
+// Usage: bin/rebuild-review [~/.claude/reviews/review-…]   (default: the latest review)
+const fs = require('fs');
+const path = require('path');
+const { renderReview } = require('../test/export-harness');
+
+const dir = path.resolve(process.argv[2] || path.join(process.env.HOME, '.claude', 'reviews', 'latest'));
+const timeline = JSON.parse(fs.readFileSync(path.join(dir, 'timeline.json'), 'utf8'));
+const md = path.join(dir, 'review.md');
+if (fs.existsSync(md)) fs.copyFileSync(md, path.join(dir, 'review.previous.md'));
+fs.writeFileSync(md, renderReview(timeline));
+console.log(`Rewrote ${md}`);

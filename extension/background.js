@@ -13,8 +13,8 @@ async function ensureOffscreen() {
 }
 
 // ── Native messaging host ───────────────────────
-// Chrome starts assets/native-host.js on demand (registered by bin/install-native-host).
-const NATIVE_HOST = 'com.stian.webapp_reviewer';
+// Chrome starts assets/native-host.js on demand (registered by install.sh).
+const NATIVE_HOST = 'webapp_reviewer';
 
 function nativeRequest(message) {
   return new Promise(resolve => {
@@ -192,7 +192,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         // Send error back to content script
         chrome.tabs.sendMessage(sender.tab.id, {
           type: 'voice-error',
-          error: 'No Soniox API key. Add SONIOX_KEY=... to ~/.claude/skills/webapp-reviewer/.env',
+          error: 'No Soniox API key. Add SONIOX_KEY=... to the .env file in the webapp-reviewer folder',
         });
         sendResponse({ ok: false });
         return;

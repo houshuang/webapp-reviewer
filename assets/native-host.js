@@ -1,7 +1,7 @@
-#!/opt/homebrew/bin/node
+#!/usr/bin/env node
 // Webapp Reviewer — Chrome native messaging host
 // Chrome starts this process when the extension connects and ends it when the
-// port closes, so nothing runs between exports. Registered by bin/install-native-host.
+// port closes, so nothing runs between exports. Registered by install.sh.
 //
 // Messages (one JSON object each, framed by a 4-byte little-endian length):
 //   { type: 'get-key' }                                    -> { key }
@@ -15,14 +15,11 @@ const fs = require('fs');
 const path = require('path');
 
 const BASE_DIR = path.join(process.env.HOME, '.claude', 'reviews');
-const SKILL_DIR = path.join(process.env.HOME, '.claude', 'skills', 'webapp-reviewer');
+const SKILL_DIR = path.resolve(__dirname, '..');
 
 function loadSonioxKey() {
   if (process.env.SONIOX_KEY) return process.env.SONIOX_KEY;
-  for (const file of [
-    path.join(SKILL_DIR, '.env'),
-    path.join(process.env.HOME, '.claude', 'skills', 'design-explorer', '.env'),
-  ]) {
+  for (const file of [path.join(SKILL_DIR, '.env')]) {
     try {
       const match = fs.readFileSync(file, 'utf8').match(/SONIOX_KEY=(.+)/);
       if (match) return match[1].trim();

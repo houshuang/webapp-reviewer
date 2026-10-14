@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Search: darwin · Folio</title>
+<style>
+  :root { --ink: #1f2328; --muted: #6b6f76; --line: #e6e2da; --paper: #fbfaf7; --accent: #7a3e1d; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 16px/1.5 Georgia, "Iowan Old Style", serif; color: var(--ink); background: var(--paper); }
+  header { border-bottom: 1px solid var(--line); background: #fff; }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 28px; }
+  header .wrap { display: flex; align-items: center; gap: 36px; height: 60px; }
+  .brand { font-weight: 700; font-size: 21px; letter-spacing: .02em; color: var(--accent); }
+  nav { display: flex; gap: 22px; font: 14px/1 -apple-system, system-ui, sans-serif; color: var(--muted); }
+  nav b { color: var(--ink); font-weight: 600; }
+  main { padding: 30px 0 40px; }
+  h1 { font-size: 30px; margin: 0 0 16px; font-weight: 600; }
+  form { display: flex; gap: 8px; margin-bottom: 22px; }
+  input { flex: 1; font: inherit; padding: 10px 14px; border: 1px solid #cfc9bd; border-radius: 6px; background: #fff; }
+  button { font: 14px -apple-system, system-ui, sans-serif; padding: 0 18px; border: 0; border-radius: 6px; background: var(--accent); color: #fff; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 18px; font: 13px -apple-system, system-ui, sans-serif; }
+  .tabs span { padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: var(--muted); }
+  .tabs span.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .cols { display: grid; grid-template-columns: 1fr 260px; gap: 34px; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .kind { font: 11px -apple-system, system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  li a { color: var(--ink); font-size: 19px; text-decoration: none; border-bottom: 1px solid #d8cfc0; }
+  .meta { font-size: 14px; color: var(--muted); margin-top: 2px; }
+  aside h2 { font: 600 13px -apple-system, system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 4px 0 10px; }
+  aside p { font-size: 15px; margin: 0 0 8px; }
+  .person { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
+  .person b { display: block; font-size: 18px; }
+</style>
+</head>
+<body>
+<header><div class="wrap"><span class="brand">Folio</span><nav><b>Search</b><span>People</span><span>Works</span><span>Topics</span><span>Places</span></nav></div></header>
+<main class="wrap">
+  <h1>Search</h1>
+  <form><input value="darwin"><button type="button">Search</button></form>
+  <div class="tabs"><span class="on">All 214</span><span>People 2</span><span>Works 131</span><span>Letters 81</span></div>
+  <div class="cols">
+    <ul id="results">
+      <li><div class="kind">Letter</div><a href="#">Darwin to J. D. Hooker, 11 January 1844</a><div class="meta">Correspondence, vol. 3 · 1844</div></li>
+      <li><div class="kind">Letter</div><a href="#">Darwin to Charles Lyell, 18 June 1858</a><div class="meta">Correspondence, vol. 7 · 1858</div></li>
+      <li><div class="kind">Work</div><a href="#">On the Origin of Species</a><div class="meta">John Murray · 1859</div></li>
+      <li><div class="kind">Work</div><a href="#">The Descent of Man</a><div class="meta">John Murray · 1871</div></li>
+      <li><div class="kind">Person</div><a href="#">Charles Darwin (1809–1882)</a><div class="meta">Naturalist · 214 works and letters</div></li>
+    </ul>
+    <aside>
+      <h2>Related</h2>
+      <div class="person"><b>Beagle voyage</b><p>Topic · 38 works</p></div>
+    </aside>
+  </div>
+</main>
+</body>
+</html>

@@ -1,7 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Webapp Reviewer",
-  "version": "1.4.0",
+  "version": "1.5.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoXypcj2i2OZ4ZB4rAa7fTr66NSOpRMLwHAa4Tn3r+7TKm3HHezVucaWFavwGUjf6uEWFD9wci1pGEbyrqb3xKeWdKGsUQb6EuclFSNT/Nl42j8tGBDzO8L9nruWICy8Rd0i6p9O4cYJORJNVYkw+DQqVBq88kWXitVk1MDNRNa3bs90J4VQsNpl+JNP/loJKQ0+IOTQs7/d8Yo6orInmGpPE949KESzPue+DfYLMIctswyyOvJwoXm8b8PLXwJS/rglug3ot/yAM4PoUC82fh8PKhWP+O/1Hs5UcUzeSalQhj/nz4RUwycdQU3IfburQ7yHU7NW9maTyzAh6iG89uwIDAQAB",
   "description": "DOM-aware review tool with voice, screenshots, and annotations for AI coding assistants",
   "permissions": [
     "activeTab",

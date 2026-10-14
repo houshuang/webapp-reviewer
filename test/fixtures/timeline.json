@@ -1,0 +1,216 @@
+{
+ "startedOn": "http://localhost:3000/search?q=holberg",
+ "title": "Search: holberg",
+ "startedAt": "2026-01-01T10:00:00.000Z",
+ "exportedAt": "2026-01-01T10:00:30.000Z",
+ "events": [
+  {
+   "id": "n1",
+   "type": "navigation",
+   "kind": "start",
+   "timestamp": "2026-01-01T10:00:00.000Z",
+   "url": "http://localhost:3000/search?q=holberg",
+   "title": "Search: holberg",
+   "screenshot": "pages/01.jpg",
+   "load": {
+    "firstByte": 120,
+    "ready": 300,
+    "loaded": 450
+   },
+   "build": "generator: Folio 2.3 · commit: 6875fd92"
+  },
+  {
+   "id": "v1",
+   "type": "voice",
+   "text": "The search should put the person first,",
+   "from": "2026-01-01T10:00:02.000Z",
+   "timestamp": "2026-01-01T10:00:05.000Z",
+   "url": "http://localhost:3000/search?q=holberg"
+  },
+  {
+   "id": "b1",
+   "type": "box",
+   "timestamp": "2026-01-01T10:00:06.000Z",
+   "url": "http://localhost:3000/search?q=holberg",
+   "selector": "#results",
+   "info": {
+    "tag": "ul",
+    "name": "Works 113",
+    "text": "Works 113",
+    "heading": "Search results",
+    "landmark": "main",
+    "width": 200,
+    "height": 20,
+    "classes": "",
+    "id": null,
+    "role": null,
+    "testId": null
+   },
+   "box": {
+    "x": 100,
+    "y": 80,
+    "width": 500,
+    "height": 300
+   },
+   "viewport": {
+    "width": 1440,
+    "height": 900
+   },
+   "scroll": {
+    "x": 0,
+    "y": 0
+   },
+   "outline": [
+    "link: Works 113 → /search?q=holberg&type=work",
+    "  link: Holberg's letters → /books/1"
+   ],
+   "screenshot": "screenshots/001.jpg"
+  },
+  {
+   "id": "v2",
+   "type": "voice",
+   "text": "not a list of his letters.",
+   "from": "2026-01-01T10:00:07.000Z",
+   "timestamp": "2026-01-01T10:00:09.000Z",
+   "url": "http://localhost:3000/search?q=holberg"
+  },
+  {
+   "id": "r1",
+   "type": "reference",
+   "timestamp": "2026-01-01T10:00:10.000Z",
+   "url": "http://localhost:3000/search?q=holberg",
+   "selector": "#results > li:nth-of-type(1) > a",
+   "info": {
+    "tag": "a",
+    "name": "Holberg's letters",
+    "text": "Holberg's letters",
+    "heading": "Search results",
+    "landmark": "main",
+    "width": 200,
+    "height": 20,
+    "classes": "",
+    "id": null,
+    "role": null,
+    "testId": null
+   },
+   "isLink": true,
+   "href": "http://localhost:3000/books/1"
+  },
+  {
+   "id": "r2",
+   "type": "reference",
+   "timestamp": "2026-01-01T10:00:12.000Z",
+   "url": "http://localhost:3000/search?q=holberg",
+   "selector": "#results > li:nth-of-type(1) > a.source",
+   "info": {
+    "tag": "a",
+    "name": "library.example",
+    "text": "library.example",
+    "heading": "Search results",
+    "landmark": "main",
+    "width": 200,
+    "height": 20,
+    "classes": "",
+    "id": null,
+    "role": null,
+    "testId": null
+   },
+   "isLink": true,
+   "href": "https://library.example/item/1",
+   "newTab": true
+  },
+  {
+   "id": "a1",
+   "type": "away",
+   "timestamp": "2026-01-01T10:00:13.000Z",
+   "until": "2026-01-01T10:00:20.000Z",
+   "url": "http://localhost:3000/search?q=holberg"
+  },
+  {
+   "id": "v3",
+   "type": "voice",
+   "text": "That opens the scan at the title page,",
+   "from": "2026-01-01T10:00:14.000Z",
+   "timestamp": "2026-01-01T10:00:15.000Z",
+   "url": "http://localhost:3000/search?q=holberg"
+  },
+  {
+   "id": "n2",
+   "type": "navigation",
+   "kind": "page load",
+   "timestamp": "2026-01-01T10:00:16.000Z",
+   "url": "http://localhost:3000/books/1",
+   "title": "Holberg's letters",
+   "screenshot": "pages/02.jpg",
+   "load": {
+    "firstByte": 5800,
+    "ready": 5950,
+    "loaded": 6100
+   },
+   "build": "generator: Folio 2.3 · commit: 6875fd92"
+  },
+  {
+   "id": "r3",
+   "type": "reference",
+   "timestamp": "2026-01-01T10:00:22.000Z",
+   "url": "http://localhost:3000/books/1",
+   "selector": "#related > a",
+   "info": {
+    "tag": "a",
+    "name": "Epistler, vol. 2",
+    "text": "Epistler, vol. 2",
+    "heading": "Related",
+    "landmark": "main",
+    "width": 200,
+    "height": 20,
+    "classes": "",
+    "id": null,
+    "role": null,
+    "testId": null
+   },
+   "isLink": true,
+   "href": "http://localhost:3000/books/2",
+   "count": 3,
+   "lastAt": "2026-01-01T10:00:24.000Z"
+  },
+  {
+   "id": "v4",
+   "type": "voice",
+   "text": "This link doesn't work.",
+   "from": "2026-01-01T10:00:23.000Z",
+   "timestamp": "2026-01-01T10:00:24.000Z",
+   "url": "http://localhost:3000/books/1"
+  },
+  {
+   "id": "c1",
+   "type": "change",
+   "timestamp": "2026-01-01T10:00:25.000Z",
+   "url": "http://localhost:3000/books/1",
+   "selector": "#filters > select",
+   "info": {
+    "tag": "select",
+    "name": "Subject",
+    "text": "Subject",
+    "heading": "Related",
+    "landmark": "form",
+    "width": 120,
+    "height": 30,
+    "classes": "",
+    "id": null,
+    "role": null,
+    "testId": null
+   },
+   "value": "History"
+  },
+  {
+   "id": "n3",
+   "type": "navigation",
+   "kind": "back/forward",
+   "timestamp": "2026-01-01T10:00:27.000Z",
+   "url": "http://localhost:3000/search?q=holberg",
+   "title": "Search: holberg",
+   "screenshot": "pages/01.jpg",
+   "sameAs": "n1"
+  }
+ ]
+}

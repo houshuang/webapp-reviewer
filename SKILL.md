@@ -35,13 +35,12 @@ Do not read every image. Read a box's or click's screenshot with the remark it b
 
 ### 3. Read the transcript, then the timeline
 
-After the Pages table comes a **Transcript**: per page visit, everything the reviewer said as continuous text, with their actions as bracketed markers (`[+3:13 box under "I læreplanene"]`, `[+0:51 clicked link <a> "…", no page load]`). Read it first to list the feedback; look a marker up in the Timeline by its time for the element, link target and screenshot.
+After the Pages table comes a **Transcript**: per page visit, everything the reviewer said as continuous text, with their actions as bracketed markers (`[+3:13 box under "Results"]`, `[+0:51 clicked link <a> "…", no page load]`). Read it first to list the feedback; look a marker up in the Timeline by its time for the element, link target and screenshot.
 
-
-The timeline is grouped by page visit (`### +16:17 · Page 07 · Emner`). Each visit says how the reviewer got there (the link they clicked, back/forward, a page load) and which page screenshot belongs to it. Headings show the offset from the start of the review.
+The timeline is grouped by page visit (`### +16:17 · Page 07 · Topics`). Each visit says how the reviewer got there (the link they clicked, back/forward, a page load) and which page screenshot belongs to it. Headings show the offset from the start of the review.
 
 - **Voice** -- continuous transcription of the reviewer talking. This is the primary feedback channel. Headings give the time range the speech covered (`+0:03–0:23`). Words are placed by when they were spoken, and a sentence cut off by a page change is finished on the page where it began.
-  - It is raw live speech recognition: thinking aloud, false starts, and misheard words. Read a word that makes no sense as the similar-sounding one that fits the page (in Læreplanatlas reviews, "anthology" has meant "ontology").
+  - It is raw live speech recognition: thinking aloud, false starts, and misheard words. Read a word that makes no sense as the similar-sounding one that fits the page.
   - Remarks still drift: the reviewer often comments on a page while already moving to the next one, or a few seconds after the click they mean.
 - **Pointed at** -- the reviewer clicked an element while talking. "This is wrong" refers to the element pointed at around it. Comes with a screenshot with the element boxed. "(the click opened it)" means it was a disclosure or expandable: the reviewer was opening it to look, and the screenshot shows it opened.
 - **Clicked link** -- a link click that did not lead to a page load in this tab, with **Link to** (its target) and "(opens in a new tab)" when it does. Link clicks that loaded their target are folded into that page visit's "Arrived by clicking", which warns **the page appeared N s after the click** when it took 3 s or more. A "this link doesn't work" remark next to a Clicked link is often a slow page the reviewer gave up on: compare its target with slow arrivals elsewhere in the review before assuming the link is broken.
@@ -74,27 +73,9 @@ Run `~/.claude/skills/webapp-reviewer/bin/start`, then visit `http://localhost:1
 
 ## First-time setup
 
-The Chrome extension only needs to be installed once:
-1. Open `chrome://extensions` in Chrome
-2. Enable "Developer mode" (top right)
-3. Click "Load unpacked"
-4. Select `~/.claude/skills/webapp-reviewer/extension/`
-5. Register the native messaging host, which saves reviews and reads the Soniox key:
-   ```bash
-   ~/.claude/skills/webapp-reviewer/bin/install-native-host [extension-id]
-   ```
-   Chrome starts `assets/native-host.js` for each export and stops it afterwards, so no server has to run. The extension id defaults to the current unpacked install; pass the id shown on `chrome://extensions` if it differs (for example on a new machine).
+From a clone of the repository, run `./install.sh`. It links the folder into `~/.claude/skills`, registers the native messaging host that saves reviews to `~/.claude/reviews` (Chrome starts it for each export, so no server has to run) and creates `.env` for the Soniox API key that voice needs. Then load `extension/` once as an unpacked extension in `chrome://extensions` with Developer mode on.
 
-For voice transcription, add your Soniox API key:
-```bash
-echo "SONIOX_KEY=your_key_here" > ~/.claude/skills/webapp-reviewer/.env
-```
-
-Then on any page: click the extension icon to start a review. Voice transcription starts automatically.
-
-After updating the extension files, click the reload icon on the extension card in `chrome://extensions`. Version 1.1 asks for access to all sites: it needs that to re-inject itself after a page load and to read the console. Version 1.2 adds the native messaging permission. Version 1.3 replaces drawing and annotations with the box, and screenshots every page. Version 1.4 places speech by when it was spoken (in the live panel and the export), gives Soniox the names and labels of each page you visit so it recognises them, records clicks from the moment the review starts, and shows nesting in box outlines.
-
-The review continues across page loads in the same tab, and the timeline is saved per tab until it is exported.
+After updating the extension files, click the reload icon on the extension card in `chrome://extensions`. The review continues across page loads in the same tab, and the timeline is saved per tab until it is exported. If the export code changes, `bin/rebuild-review [review folder]` rewrites a saved `review.md` from its `timeline.json`.
 
 ## Extension usage
 
@@ -106,7 +87,7 @@ The review continues across page loads in the same tab, and the timeline is save
 6. **Move around freely** -- every page you open is screenshotted about a second after it loads, and the review carries on across page loads
 7. **Export** -- press `Alt+X`. The path to `review.md` is copied to the clipboard and the timeline clears. If saving fails, the markdown is copied and the timeline is kept.
 
-The timeline panel (`Alt+N`) and the feed in the bottom-left corner show each entry as the agent will read it, marked "screenshot" or "no screenshot".
+The timeline panel (`Alt+N`) shows each entry as the agent will read it, marked "screenshot" or "no screenshot"; your latest action shows briefly in the bottom-left corner.
 
 ## Keyboard shortcuts
 

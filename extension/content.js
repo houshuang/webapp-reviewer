@@ -371,7 +371,7 @@
     transition: opacity 0.3s, transform 0.3s;
   }
   .mini-feed-item:hover { background: rgba(17, 24, 39, 0.95); border-color: rgba(255,255,255,0.15); }
-  .mini-feed-item.fresh { border-color: rgba(59,130,246,0.4); }
+  .mini-feed-item.gone { opacity: 0; transform: translateY(6px); pointer-events: none; }
   .mf-icon { flex-shrink: 0; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
   .mf-icon.voice { background: rgba(239,68,68,0.2); color: #ef4444; }
   .mf-icon.annotation { background: rgba(59,130,246,0.2); color: #3b82f6; }
@@ -381,15 +381,6 @@
   .mf-icon svg { width: 14px; height: 14px; }
   .mf-text { flex: 1; font-size: 11px; color: #d1d5db; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.3; }
   .mf-time { font-size: 10px; color: #6b7280; flex-shrink: 0; }
-  .mf-counter {
-    display: flex; align-items: center; gap: 6px;
-    padding: 4px 10px; border-radius: 6px;
-    background: rgba(17, 24, 39, 0.7);
-    font-size: 10px; color: #6b7280;
-    pointer-events: auto; cursor: pointer;
-    align-self: flex-start;
-  }
-  .mf-counter:hover { color: #9ca3af; }
   @keyframes feedSlideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
   /* Voice indicator (top of screen) */
@@ -765,44 +756,39 @@
   }
 
   // ═══════════════════════════════════════════════
-  // Mini Feed (always-visible activity stream, bottom-left)
+  // Mini Feed: the reviewer's latest action, bottom-left, fading after a few seconds
   // ═══════════════════════════════════════════════
-  const MAX_FEED_ITEMS = 4;
+  const FEED_SHOW_MS = 3500;
+  const FEED_SKIP = ['navigation', 'voice', 'away'];
+  let feedId = null;
+  let feedTimer = null;
 
   function renderMiniFeed() {
-    miniFeed.innerHTML = '';
-    const recent = state.timeline.slice(-MAX_FEED_ITEMS);
-
-    recent.forEach((evt, i) => {
-      const d = describeForAgent(evt);
-      const item = document.createElement('div');
-      item.className = 'mini-feed-item' + (i === recent.length - 1 ? ' fresh' : '');
-      const text = d.text.length > 60 ? d.text.substring(0, 60) + '…' : d.text;
-      item.innerHTML = `<div class="mf-icon ${d.cls}">${d.icon}</div><div class="mf-text">${escapeHtml(text)}</div><div class="mf-time">${shotMark(d.shot)}</div>`;
-      item.addEventListener('click', () => {
-        timelinePanel.style.display = 'block';
-        renderTimeline();
-        timelineList.scrollTop = timelineList.scrollHeight;
-      });
-      miniFeed.appendChild(item);
-    });
-
-    // Show counter if there are more events than displayed
-    if (state.timeline.length > MAX_FEED_ITEMS) {
-      const counter = document.createElement('div');
-      counter.className = 'mf-counter';
-      counter.textContent = state.timeline.length + ' total events - click to expand';
-      counter.addEventListener('click', () => {
-        timelinePanel.style.display = 'block';
-        renderTimeline();
-      });
-      miniFeed.insertBefore(counter, miniFeed.firstChild);
+    const evt = state.timeline.findLast(e => !FEED_SKIP.includes(e.type));
+    if (!evt) { miniFeed.innerHTML = ''; feedId = null; return; }
+    const d = describeForAgent(evt);
+    const text = d.text.length > 60 ? d.text.substring(0, 60) + '…' : d.text;
+    const html = `<div class="mf-icon ${d.cls}">${d.icon}</div><div class="mf-text">${escapeHtml(text)}</div><div class="mf-time">${shotMark(d.shot)}</div>`;
+    // The same event again (its screenshot arrived, a repeat counted): update in place.
+    if (evt.id === feedId) {
+      const item = miniFeed.querySelector('.mini-feed-item');
+      if (item && item.innerHTML !== html) item.innerHTML = html;
+      return;
     }
-
-    // Remove "fresh" highlight after animation
-    setTimeout(() => {
-      miniFeed.querySelectorAll('.fresh').forEach(el => el.classList.remove('fresh'));
-    }, 2000);
+    if (feedId === null && Date.now() - Date.parse(evt.timestamp) > FEED_SHOW_MS) { feedId = evt.id; return; } // restored on page load
+    feedId = evt.id;
+    miniFeed.innerHTML = '';
+    const item = document.createElement('div');
+    item.className = 'mini-feed-item';
+    item.innerHTML = html;
+    item.addEventListener('click', () => {
+      timelinePanel.style.display = 'block';
+      renderTimeline();
+      timelineList.scrollTop = timelineList.scrollHeight;
+    });
+    miniFeed.appendChild(item);
+    clearTimeout(feedTimer);
+    feedTimer = setTimeout(() => item.classList.add('gone'), FEED_SHOW_MS);
   }
 
   // ═══════════════════════════════════════════════
@@ -1051,7 +1037,7 @@
       info: await describeElement(container),
       outline,
     };
-    const full = await grabViewport([], [r]);
+    const full = await grabViewport([], [r], { sharp: true });
     if (full) data.dataUrl = (await cropImage(full, r)) || full;
     addEvent('box', data);
   }
@@ -1211,7 +1197,10 @@
   // ═══════════════════════════════════════════════
   // Hides the reviewer UI, outlines the given elements and rectangles, captures the
   // visible tab and puts everything back the way it was.
-  async function grabViewport(outlineEls = [], outlineRects = []) {
+  // Full-screen shots are scaled to CSS pixels, so their coordinates match the box and
+  // element sizes in the review and an agent reads a quarter of the pixels of a Retina
+  // capture. Box crops keep the full resolution.
+  async function grabViewport(outlineEls = [], outlineRects = [], { sharp = false } = {}) {
     const hidden = [toolbar, noteForm, timelinePanel, miniFeed, toastEl, helpOverlay, boxRect].map(el => [el, el.style.display]);
     hidden.forEach(([el]) => (el.style.display = 'none'));
     const rects = [
@@ -1229,7 +1218,9 @@
       return box;
     });
 
-    await new Promise(r => setTimeout(r, 80));
+    // On a busy page the hidden UI is not painted for a while, and the capture would show
+    // the last painted frame with the toolbar in it: wait for two frames, then a little.
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 50))));
     let dataUrl = null;
     // captureVisibleTab allows two calls a second, so a page shot right after a click can fail once.
     for (let attempt = 0; attempt < 2 && !dataUrl; attempt++) {
@@ -1242,7 +1233,23 @@
 
     burnIns.forEach(b => b.remove());
     hidden.forEach(([el, display]) => (el.style.display = display));
-    return dataUrl;
+    return dataUrl && !sharp ? toCssPixels(dataUrl) : dataUrl;
+  }
+
+  function toCssPixels(dataUrl) {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => {
+        if (img.width <= window.innerWidth * 1.1) { resolve(dataUrl); return; }
+        const c = document.createElement('canvas');
+        c.width = window.innerWidth;
+        c.height = Math.round(img.height * window.innerWidth / img.width);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        resolve(c.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    });
   }
 
   async function captureScreenshot() {
@@ -1275,6 +1282,7 @@
   }
 
   const SLOW_ARRIVAL_MS = 3000;
+  const mdTimes = (evt) => evt.count > 1 ? ` · clicked ${evt.count} times in ${secs(Date.parse(evt.lastAt) - Date.parse(evt.timestamp))}` : '';
   const secs = (ms) => (ms / 1000).toFixed(1) + ' s';
 
   // Milliseconds from the start of the navigation, i.e. from the click or Enter.
@@ -1291,7 +1299,7 @@
     const marker = (evt) => {
       const t = elapsed(evt.timestamp);
       switch (evt.type) {
-        case 'reference': return `[${t} ${evt.isLink ? 'clicked link' : 'pointed at'} ${name(evt.info)}${evt.toggled ? ', ' + evt.toggled : ''}${evt.isLink ? (evt.newTab ? ', new tab' : ', no page load') : ''}]`;
+        case 'reference': return `[${t} ${evt.isLink ? 'clicked link' : 'pointed at'} ${name(evt.info)}${evt.toggled ? ', ' + evt.toggled : ''}${evt.count > 1 ? `, ×${evt.count}` : ''}${evt.isLink ? (evt.newTab ? ', new tab' : ', no page load') : ''}]`;
         case 'box': return `[${t} box${evt.info && evt.info.heading ? ` under ${q(evt.info.heading)}` : ''}]`;
         case 'selection': return `[${t} selected ${q(evt.text)}]`;
         case 'change': return `[${t} set ${name(evt.info)} to ${q(evt.value)}]`;
@@ -1302,12 +1310,19 @@
         default: return `[${t} ${evt.type}]`;
       }
     };
+    // A remark that runs on across a page change stays in one paragraph, with the new page
+    // marked where it opened.
     let md = '';
+    let open = false; // the last paragraph ended mid-sentence
     visits.forEach(v => {
       if (!v.events.some(e => e.type === 'voice' || REMARK_TYPES.includes(e.type) || e.type === 'change')) return;
       const start = v.nav ? v.nav.timestamp : state.startedAt;
-      md += `**${elapsed(start)} · Page ${pad(v.page, 2)}** \`${shortUrl(v.url)}\`\n\n`;
-      md += v.events.map(e => e.type === 'voice' ? e.text.trim() : marker(e)).join(' ') + '\n\n';
+      const head = `${elapsed(start)} · Page ${pad(v.page, 2)}`;
+      const text = v.events.map(e => e.type === 'voice' ? e.text.trim() : marker(e)).join(' ');
+      if (open) md = md.replace(/\n\n$/, '') + ` [${head} \`${shortUrl(v.url)}\`] ${text}\n\n`;
+      else md += `**${head}** \`${shortUrl(v.url)}\`\n\n${text}\n\n`;
+      const last = v.events[v.events.length - 1];
+      open = !!last && last.type === 'voice' && !SENTENCE_END.test(last.text.trim());
     });
     return md;
   }
@@ -1531,6 +1546,8 @@
     md += `**Date:** ${state.startedAt || now}\n`;
     md += `**Duration:** ${elapsed(now).slice(1)}\n`;
     md += `**Pages:** ${pages.length} (${visits.length} visits)\n`;
+    const builds = [...new Set(visits.map(v => v.nav && v.nav.build).filter(Boolean))];
+    if (builds.length) md += `**Site build:** ${builds.join('; then ')}\n`;
     md += `**Console:** ${state.consoleLog.length ? `${errors} errors, ${warnings} warnings, ${state.consoleLog.length} entries in \`console.log\`` : 'no entries captured'}\n\n`;
     md += `How to read this: the timeline is grouped by page visit. Speech is the main feedback; each voice entry is placed by when it was spoken, between the clicks and page changes around it. It is live speech recognition: expect thinking aloud, half sentences and misheard words (read a word that makes no sense as the similar-sounding word that fits the page). A click ("Pointed at"), box or text selection marks what the reviewer meant by the speech just before and after it. A remark often trails onto the next page or comes a moment after the click it refers to. Voice headings show when the speech started and ended. Every page has a screenshot taken about a second after it loaded, at the top of the page, in \`pages/\`: open one when a remark is about the page as a whole or you need its layout, and skip pages with no remarks, which the reviewer only passed through. Clicks and boxes carry their own screenshots in \`screenshots/\`, taken at the moment of the click or box. A link click that led to a page is folded into that page's "Arrived by clicking" (with a warning when the page took 3 s or more to appear); a "Clicked link" entry shows the link's target and that no page load followed, which is what a complaint that a link \"doesn't work\" usually refers to. Page visits from a click or address bar show how long the load took. "On another tab" spans mean the reviewer was looking at another tab (often a link that opened in a new tab), and remarks made then are about that. \`timeline.json\` has the same events as data.\n\n`;
 
@@ -1562,7 +1579,7 @@
         const where = [v.via.info.landmark, v.via.info.heading && `under heading "${v.via.info.heading}"`].filter(Boolean).join(' · ');
         const wait = v.nav ? Date.parse(v.nav.timestamp) - Date.parse(v.via.timestamp) : 0;
         md += `- **Arrived by clicking** ${mdHeadline(v.via.info)}${where ? ' in ' + where : ''} · \`${v.via.selector}\`` +
-          (wait >= SLOW_ARRIVAL_MS ? ` · **the page appeared ${secs(wait)} after the click**` : '') + '\n';
+          mdTimes(v.via) + (wait >= SLOW_ARRIVAL_MS ? ` · **the page appeared ${secs(wait)} after the click**` : '') + '\n';
       } else if (v.nav) {
         md += `- **Arrived by:** ${{ start: 'start of review', 'page load': 'page load (address bar, reload or form)', 'in-page': 'in-page route change', 'back/forward': 'back/forward' }[v.nav.kind] || v.nav.kind}\n`;
       }
@@ -1572,6 +1589,7 @@
         else if (f) md += `- **Page screenshot:** \`${f}\`\n`;
         else md += `- **Page screenshot:** none (left the page or switched tab before it was taken)\n`;
         if (v.nav.load) md += `- **Load:** ${mdLoad(v.nav.load)}\n`;
+        if (builds.length > 1 && v.nav.build) md += `- **Build:** ${v.nav.build}\n`;
       }
       md += '\n';
 
@@ -1585,7 +1603,7 @@
         } else if (evt.type === 'reference') {
           const did = evt.toggled ? ` (the click ${evt.toggled} it)` : '';
           const went = evt.isLink ? (evt.newTab ? ' (opens in a new tab)' : ' (no page load followed in this tab)') : '';
-          md += `#### ${t} — ${evt.isLink ? 'Clicked link' : 'Pointed at'} ${mdHeadline(evt.info)}${did}${went}\n\n`;
+          md += `#### ${t} — ${evt.isLink ? 'Clicked link' : 'Pointed at'} ${mdHeadline(evt.info)}${did}${went}${mdTimes(evt)}\n\n`;
           if (evt.href) md += `- **Link to:** \`${shortUrl(evt.href)}\`\n`;
           md += mdElement(evt.info, evt.selector) + '\n';
           md += image(evt);
@@ -1698,7 +1716,7 @@
 
     // If saving failed the screenshots would be lost, so the timeline is kept.
     try { await navigator.clipboard.writeText(markdown); } catch {}
-    showToast('Could not save - markdown copied, timeline kept. Run bin/install-native-host and export again.');
+    showToast('Could not save - markdown copied, timeline kept. Run install.sh and export again.');
   }
 
   async function clearTimeline() {
@@ -1788,6 +1806,16 @@
       const prev = state.timeline.findLast(e => e.type === 'reference' || e.type === 'change');
       if (prev && prev.selector === selector && Date.now() - Date.parse(prev.timestamp) < SELECT_REPEAT_MS) return;
     }
+    // Clicking the same thing again and again (a link that seems dead) is one entry with a count.
+    const prev = state.timeline.findLast(e => e.type !== 'voice');
+    if (prev && prev.type === 'reference' && prev.selector === selector && !prev.toggled && !el.closest('summary, [aria-expanded]') &&
+        Date.now() - Date.parse(prev.lastAt || prev.timestamp) < REPEAT_CLICK_MS) {
+      prev.count = (prev.count || 1) + 1;
+      prev.lastAt = new Date().toISOString();
+      renderTimeline(); renderMiniFeed();
+      if (isLink) flushPersist(); else persist();
+      return;
+    }
     const newTab = isLink && link.target === '_blank';
     const evt = addEvent('reference', { selector, info: getElementInfo(el), ...(isLink ? { isLink, href: link.href, ...(newTab ? { newTab } : {}) } : {}) });
     if (isLink) flushPersist();
@@ -1831,7 +1859,19 @@
     setTimeout(() => capturePage(evt.id), PAGE_SHOT_DELAY);
   }
 
-  const PAGE_SHOT_DELAY = 1200;
+  // A version the page states about itself, so a review can be tied to a build.
+  function siteBuild() {
+    const names = ['generator', 'version', 'app-version', 'build', 'build-id', 'commit', 'revision'];
+    const found = names.map(n => {
+      const m = document.querySelector(`meta[name="${n}" i]`);
+      return m && m.content ? `${n}: ${m.content.trim().slice(0, 80)}` : null;
+    }).filter(Boolean);
+    const d = document.documentElement.dataset;
+    ['build', 'version', 'commit'].forEach(k => { if (d[k]) found.push(`data-${k}: ${d[k].slice(0, 80)}`); });
+    return found.join(' · ');
+  }
+
+  const PAGE_SHOT_DELAY = 600; // the content script runs once the page has loaded
 
   async function capturePage(id) {
     const find = () => state.timeline.find(e => e.id === id); // restore() replaces event objects
@@ -1841,6 +1881,8 @@
     if (document.title && document.title !== evt.title) evt.title = document.title;
     // Remarks about speed need numbers. Only a full load has its own timing entry; a page
     // restored by back/forward or changed in place would report an older load.
+    const build = siteBuild();
+    if (build) evt.build = build;
     const timing = performance.getEntriesByType('navigation')[0];
     if (timing && (evt.kind === 'page load' || evt.kind === 'start') && evt.url === location.href) {
       evt.load = {
@@ -1908,6 +1950,7 @@
   const CONSOLE_LEVELS = ['log', 'info', 'warn', 'error', 'debug'];
   const CONSOLE_KINDS = ['console', 'uncaught', 'unhandledrejection', 'network', 'resource'];
   const MAX_CONSOLE_EVENTS = 100;
+  let voiceLost = false;
 
   window.addEventListener('pagehide', () => {
     if (state.active) commitVoiceSegment();
@@ -1958,6 +2001,7 @@
   // What the reviewer chose or typed in a form: filters that apply without changing the
   // URL, and search terms, would otherwise only show in the next screenshot.
   const SELECT_REPEAT_MS = 5000;
+  const REPEAT_CLICK_MS = 8000;
   document.addEventListener('change', (e) => {
     if (!state.active || state.mode) return;
     const el = e.target;
@@ -1989,6 +2033,9 @@
       clearTimeout(hiddenTimer);
       const away = !hiddenTimer && state.timeline.findLast(e => e.type === 'away' && !e.until);
       if (away) { away.until = new Date().toISOString(); renderTimeline(); renderMiniFeed(); persist(); }
+      // A page left for another tab before its screenshot gets one now.
+      const nav = state.timeline.findLast(e => e.type === 'navigation');
+      if (nav && nav.url === location.href && !nav.dataUrl && !nav.sameAs && !nav.shotPending) setTimeout(() => capturePage(nav.id), PAGE_SHOT_DELAY);
       hiddenTimer = null;
       hiddenAt = null;
     }
@@ -2024,8 +2071,9 @@
         receiveSpeech(msg.finalText, msg.keepInterim ? voiceInterim : msg.interimText, msg.finalWords || []);
         break;
       case 'soniox-status':
-        if (msg.connected === true) showToast('Voice connected');
-        if (msg.connected === false && state.recording) showToast('Voice reconnecting...');
+        // Connections are replaced on most page loads; only a lost one is worth saying.
+        if (msg.connected === false && state.recording) { voiceLost = true; showToast('Voice reconnecting...'); }
+        if (msg.connected === true && voiceLost) { voiceLost = false; showToast('Voice back'); }
         break;
       case 'voice-error':
         showToast('Voice: ' + msg.error);
@@ -2067,7 +2115,7 @@
 
     const hostReady = await checkHost();
     if (hostReady) {
-      showToast(resumed ? 'Review continues on this page' : 'Reviewing: talk, click, ⌥-drag to box an area. ? for help');
+      if (!resumed) showToast('Reviewing: talk, click, ⌥-drag to box an area. ? for help');
       // Auto-start continuous voice
       startVoice();
       // Speech captured while the new page was loading came before anything received since
@@ -2076,7 +2124,7 @@
         else receiveSpeech(bufferedVoice, '', bufferedWords);
       }
     } else {
-      showToast('Active, but saving is not set up. Run: ~/.claude/skills/webapp-reviewer/bin/install-native-host');
+      showToast('Active, but saving is not set up. Run install.sh from the webapp-reviewer folder');
     }
   }
 
