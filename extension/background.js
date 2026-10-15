@@ -230,6 +230,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
 
+  if (msg.type === 'open-mic-setup') {
+    chrome.tabs.create({ url: chrome.runtime.getURL('mic.html') });
+    return;
+  }
+
   // Offscreen -> background -> content: forward Soniox tokens/status/errors
   if (msg.target === 'background' && msg.tabId) {
     const fwd = (payload) => chrome.tabs.sendMessage(msg.tabId, payload);

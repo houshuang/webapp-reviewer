@@ -7,21 +7,12 @@ async function getTab() {
   return tab;
 }
 
-// Request microphone permission from the popup (has user gesture context).
-// The offscreen document inherits this grant since it shares the extension origin.
+// A popup cannot show the permission prompt, so an ungranted microphone is asked for
+// in a tab (mic.html); the offscreen document shares that grant.
 async function ensureMicPermission() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    // Immediately stop — we just needed the permission grant
-    stream.getTracks().forEach(t => t.stop());
-    micStatus.textContent = 'Microphone: granted';
-    micStatus.className = 'mic-ok';
-    return true;
-  } catch (err) {
-    micStatus.textContent = 'Microphone: denied - voice won\'t work';
-    micStatus.className = 'mic-denied';
-    return false;
-  }
+  if (await checkMicPermission()) return true;
+  chrome.tabs.create({ url: chrome.runtime.getURL('mic.html') });
+  return false;
 }
 
 async function checkMicPermission() {
@@ -32,11 +23,11 @@ async function checkMicPermission() {
       micStatus.className = 'mic-ok';
       return true;
     } else if (result.state === 'denied') {
-      micStatus.textContent = 'Microphone: denied - check site settings';
+      micStatus.textContent = 'Microphone: blocked - click Start to fix';
       micStatus.className = 'mic-denied';
       return false;
     } else {
-      micStatus.textContent = 'Microphone: click Start to grant';
+      micStatus.textContent = 'Microphone: not yet allowed - click Start';
       micStatus.className = 'mic-prompt';
       return false;
     }
@@ -62,8 +53,7 @@ async function checkStatus() {
 }
 
 toggleBtn.addEventListener('click', async () => {
-  // Ensure mic permission before starting (popup has user gesture)
-  await ensureMicPermission();
+  if (!(await ensureMicPermission())) { window.close(); return; }
 
   const tab = await getTab();
   try {

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Webapp Reviewer · Microphone</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #111827; color: #f9fafb; display: grid; place-items: center; min-height: 100vh; margin: 0; }
+    main { max-width: 360px; padding: 16px; text-align: center; }
+    h1 { font-size: 18px; font-weight: 600; margin: 0 0 16px; }
+    button { padding: 10px 20px; border: none; border-radius: 6px; background: #3b82f6; color: white; font-size: 14px; cursor: pointer; }
+    button:hover { background: #2563eb; }
+    p { font-size: 13px; color: #9ca3af; }
+    .ok { color: #34d399; }
+    .denied { color: #f87171; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Microphone for voice notes</h1>
+    <button id="allow">Allow microphone</button>
+    <p id="result"></p>
+  </main>
+  <script src="mic.js"></script>
+</body>
+</html>

@@ -204,7 +204,8 @@ async function startRecording(tid, key, ctx) {
   try {
     mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
   } catch (err) {
-    sendToTab('voice-error', { error: 'Mic permission needed - click the extension icon first to grant access' });
+    chrome.runtime.sendMessage({ target: 'background', type: 'open-mic-setup' });
+    sendToTab('voice-error', { error: 'Allow the microphone in the tab that just opened, then start voice again' });
     return;
   }
 
