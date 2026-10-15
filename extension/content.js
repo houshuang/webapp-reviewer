@@ -483,7 +483,7 @@
         <tr><td><kbd>Alt+S</kbd></td><td>Screenshot the whole screen</td></tr>
         <tr><td><kbd>Alt+T</kbd></td><td>Type a note instead of talking</td></tr>
         <tr><td><kbd>Alt+N</kbd></td><td>Show what has been recorded</td></tr>
-        <tr><td><kbd>Alt+X</kbd></td><td>Export (copies the path)</td></tr>
+        <tr><td><kbd>Alt+X</kbd></td><td>Export and end (copies the path)</td></tr>
         <tr><td><kbd>Alt+R</kbd></td><td>Start / stop the review</td></tr>
       </table>
       <p style="margin-top:16px;font-size:12px;color:#6b7280">Click anywhere to close</p>
@@ -1680,7 +1680,8 @@
   }
 
   async function exportReview() {
-    commitVoiceSegment();
+    if (state.recording) stopVoice();
+    else commitVoiceSegment();
     const now = new Date().toISOString();
     const timeline = voiceBySpokenTime(state.timeline);
     const visits = buildVisits(timeline);
@@ -1709,7 +1710,10 @@
         const mdPath = response.path + '/review.md';
         try { await navigator.clipboard.writeText(mdPath); } catch {}
         await clearTimeline();
+        // Exporting ends the review; the overlay stays until the path toast has been read.
+        chrome.runtime.sendMessage({ type: 'set-active', active: false }).catch(() => {});
         showToast(`Saved, path copied: ${mdPath}`);
+        setTimeout(() => { if (state.active) deactivate(); }, 2500);
         return;
       }
     } catch {}
